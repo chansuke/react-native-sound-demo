@@ -35,48 +35,15 @@ const resultIcons = {
 
 const audioTests = [
   {
-    title: 'mp3 in bundle',
     url: 'advertising.mp3',
     basePath: Sound.MAIN_BUNDLE,
   },
   {
-    title: 'mp3 in bundle (looped)',
     url: 'advertising.mp3',
     basePath: Sound.MAIN_BUNDLE,
-    onPrepared: (sound, component) => {
-      sound.setNumberOfLoops(-1);
-      component.setState({loopingSound: sound});
-    },
   },
 ];
 
-setTestState = (testInfo, component, status) => {
-  component.setState({tests: {...component.state.tests, [testInfo.title]: status}});
-}
-
-playSound = (testInfo, component) => {
-  setTestState(testInfo, component, 'pending');
-
-  const callback = (error, sound) => {
-    if (error) {
-      Alert.alert('error', error.message);
-      setTestState(testInfo, component, 'fail');
-      return;
-    }
-    setTestState(testInfo, component, 'playing');
-    testInfo.onPrepared && testInfo.onPrepared(sound, component);
-    sound.play(() => {
-      setTestState(testInfo, component, 'win');
-      sound.release();
-    });
-  };
-
-  if (testInfo.isRequire) {
-    const sound = new Sound(testInfo.url, error => callback(error, sound));
-  } else {
-    const sound = new Sound(testInfo.url, testInfo.basePath, error => callback(error, sound));
-  }
-}
 
 class MainView extends Component {
   constructor(props) {
@@ -100,24 +67,41 @@ class MainView extends Component {
     };
   }
 
+  playSounds = (testInfo) => {
+    const callback = (error, sound) => {
+      if (error) {
+        Alert.alert('error', error.message);
+        return;
+      }
+
+      sound.play(() => {
+        sound.release();
+      });
+    };
+
+    let sound;
+    if (testInfo.isRequire) {
+      sound = new Sound(testInfo.url, error => callback(error, sound));
+    } else {
+      sound = new Sound(testInfo.url, testInfo.basePath, error => callback(error, sound));
+    }
+    sound.stop(() => console.log("stopped"));
+  }
+
   render() {
     return (
       <View style={styles.container}>
-        <Header style={styles.title}>react-native-sound-demo</Header>
+        <Header style={styles.title}>english-study-app-demo</Header>
         <ScrollView style={styles.container} contentContainerStyle={styles.scrollContainer}>
-          {audioTests.map(testInfo => {
-            return (
-              <Feature
-                status={this.state.tests[testInfo.title]}
-                key={testInfo.title}
-                title={testInfo.title}
-                onPress={() => {
-                  return playSound(testInfo, this);
-                }}
-              />
-            );
-          })}
-          <Feature title="mp3 in bundle (looped)" buttonLabel={'STOP'} onPress={this.stopSoundLooped} />
+          <Feature
+            title="連続再生テスト"
+            onPress={() => {
+              audioTests.forEach((audio) => {
+                this.playSounds(audio);
+              })
+            }}
+          />
+          <Feature title="停止ボタンテスト" buttonLabel={'STOP'} onPress={this.stopSoundLooped} />
         </ScrollView>
       </View>
     );
