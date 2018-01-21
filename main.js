@@ -33,17 +33,15 @@ const resultIcons = {
   fail: '\u274C',
 };
 
-const audioTests = [
-  {
-    url: 'advertising.mp3',
-    basePath: Sound.MAIN_BUNDLE,
-  },
-  {
-    url: 'advertising.mp3',
-    basePath: Sound.MAIN_BUNDLE,
-  },
-];
+const audioTest1 = {
+  url: 'advertising.mp3',
+  basePath: Sound.MAIN_BUNDLE,
+};
 
+const audioTest2 = {
+  url: 'advertising.mp3',
+  basePath: Sound.MAIN_BUNDLE,
+}
 
 class MainView extends Component {
   constructor(props) {
@@ -67,25 +65,41 @@ class MainView extends Component {
     };
   }
 
-  playSounds = (testInfo) => {
-    const callback = (error, sound) => {
+  playSoundA = (audioTest1) => {
+    console.log('testInfo', audioTest1);
+    const sound = new Sound(audioTest1.url, Sound.MAIN_BUNDLE, (error) => {
       if (error) {
-        Alert.alert('error', error.message);
+        console.log('failed to load the sound', error);
         return;
       }
+    });
+    return new Promise((resolve, reject) => {
+      setTimeout(() => {
+        sound.play();
+        resolve();
+      }, 1000);
+    })
+  }
 
-      sound.play(() => {
-        sound.release();
-      });
-    };
+  playSoundB = (audioTest2) => {
+    console.log('testInfo', audioTest2);
+    const sound = new Sound(audioTest2.url, Sound.MAIN_BUNDLE, (error) => {
+      if (error) {
+        console.log('failed to load the sound', error);
+        return;
+      }
+    });
+    return new Promise((resolve, reject) => {
+      setTimeout(() => {
+        sound.play();
+        resolve();
+      }, 1000);
+    })
+  }
 
-    let sound;
-    if (testInfo.isRequire) {
-      sound = new Sound(testInfo.url, error => callback(error, sound));
-    } else {
-      sound = new Sound(testInfo.url, testInfo.basePath, error => callback(error, sound));
-    }
-    sound.stop(() => console.log("stopped"));
+  handleSounds = () => {
+    this.playSoundA()
+      .then(this.playSoundB());
   }
 
   render() {
@@ -95,11 +109,8 @@ class MainView extends Component {
         <ScrollView style={styles.container} contentContainerStyle={styles.scrollContainer}>
           <Feature
             title="連続再生テスト"
-            onPress={() => {
-              audioTests.forEach((audio) => {
-                this.playSounds(audio);
-              })
-            }}
+            //onPress={this.handleSounds()}
+            onPress={this.playSoundA()}
           />
           <Feature title="停止ボタンテスト" buttonLabel={'STOP'} onPress={this.stopSoundLooped} />
         </ScrollView>
